@@ -65,11 +65,13 @@ class Record:
 
         if self.price:
             self.price = self.price.get_text().strip()
-            self.price = self.price[1:]
+            if self.price[1:].isnumeric():
+                self.price = self.price[1:]
 
         if self.price_old:
             self.price_old = self.price_old.get_text().strip()
-            self.price_old = self.price_old[1:]
+            if self.price_old[1:].isnumeric():
+                self.price_old = self.price_old[1:]
 
         if self.item_link:
             self.manufacturer = self.get_manufacturer_string(self.item_link)
