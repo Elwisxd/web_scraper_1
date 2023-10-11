@@ -66,7 +66,7 @@ class Record:
         if self.price:
             self.price = self.price.get_text().strip()
             if self.price[1:].isnumeric():
-                self.price = self.price[1:] 
+                self.price = self.price[1:]
 
         if self.price_old:
             self.price_old = self.price_old.get_text().strip()
