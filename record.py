@@ -124,24 +124,29 @@ class Record:
     @staticmethod
     def compare(old, new):
 
-        # {
-        #     'field': 'field1',
-        #     'old_value': '',
-        #     'new_ value'
-        # }
-
-        response = {'full_name': new.full_name, 'messages': [], 'diff': []}
+        types = []
+        response = {'full_name': new.get_full_name(), 'manufacturer':new.get_manufacturer(), 'messages': [], 'differences': []}
         if not old.item_id == new.item_id:
             response['messages'].append(f'Item IDs dont match - old record ID ({old.item_id}), new record ID ({new.item_id})')
-            return response
+            return types, response
 
-        if not old.get_price() == new.get_price():
-            response['diff'].append(Record.get_diff_dict('price', old.price, new.price))
+        if (not new.get_price().isnumeric()) and old.get_price().isnumeric():
+            response['differences'].append(Record.get_diff_dict('price', old.price, new.price))
+            types.append('sold_out')
 
-        if not old.get_price_old() == new.get_price_old():
-            response['diff'].append(Record.get_diff_dict('price_old', old.price_old, new.price_old))
+        if (not old.get_price().isnumeric()) and new.get_price().isnumeric():
+            response['differences'].append(Record.get_diff_dict('price', old.price, new.price))
+            types.append('restocked')
 
-        return response
+        if old.get_price().isnumeric() and new.get_price().isnumeric():
+            if old.get_price() > new.get_price():
+                response['differences'].append(Record.get_diff_dict('price', old.price, new.price))
+                types.append('discount')
+            else:
+                response['differences'].append(Record.get_diff_dict('price', old.price, new.price))
+                types.append('markup')
+
+        return types, response
 
     @staticmethod
     def get_comparision(old, new):
@@ -179,4 +184,12 @@ class Record:
         response += f' | Old price : {self.get_price_old()}\n'
         response += f' | Brand     : {self. get_manufacturer()}\n'
         response += ' _______________________________________________________\n\n'
+        return response
+
+    def get_info_dict(self):
+        response = {}
+        response["full_name"] = self.get_full_name()
+        response["manufacturer"] = self.get_manufacturer()
+        response["price"] = self.get_price()
+        response["price_old"] = self.get_price_old()
         return response

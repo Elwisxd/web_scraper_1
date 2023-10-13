@@ -3,6 +3,7 @@ import json
 from bs4 import BeautifulSoup
 from record import Record
 from params import Params
+import pprint
 
 
 class Scrapper:
@@ -67,40 +68,64 @@ class Scrapper:
         for id, record in self.old_records.items():
             record.print_info(one_line)
 
-    def compare(self):
-        result = ''
+    def compare(self): #Returns array with all differences
+        changed = False
+        differences = {
+            "messages": [],
+            "added": [],
+            "removed": [],
+            "discounted": [],
+            "restocked": [],
+            "sold_out": [],
+            "markup": []
+        }
+
         if len(self.old_records) == 0:
-            result += 'List \'old_records\' empty, nothing to compare'
-            return None
+            differences["messages"].append('List \'old_records\' empty, nothing to compare')
+            return differences
         if len(self.new_records) == 0:
-            result += 'List \'new_records\'empty, nothing to compare'
-            return None
+            differences["messages"].append('List \'new_records\'empty, nothing to compare')
+            return differences
 
         new_keys = set(self.new_records.keys())
         old_keys = set(self.old_records.keys())
 
         added = new_keys.difference(old_keys)
+        removed = old_keys.difference(new_keys)
 
-        result += 'NEWS from automodel\n'
-        result += f'New records - {len(new_keys)}\n'
-        result += f'Old records - {len(old_keys)}\n'
-        result += '\n\n--------------------------------------------------\n'
-        result += f'--------------- NEW ({len(added)}) ------------------------------\n\n'
+        if len(added) > 0 or len(removed) > 0:
+            changed = True
 
         for key in added:
-            result += self.new_records[key].get_info_string()
+            differences["added"].append(self.new_records[key].get_info_dict())
 
-        result += '\n\n--------------------------------------------------\n'
-        result += '------------ DIFFERENCES -------------------------\n\n'
-
-        differences = ''
+        for key in removed:
+            differences["removed"].append(self.old_records[key].get_info_dict())
 
         for key in new_keys.intersection(old_keys):
-            differences += Record.get_comparision(self.old_records[key], self.new_records[key])
+            diff_types, difference = Record.compare(self.old_records[key], self.new_records[key])
+            if not diff_types:
+                continue
+            changed = True
+            for diff_type in diff_types:
+                differences[diff_type].append(difference)
 
-        if len(added) == 0:
-            if len(differences) == 0:
-                return None
+        return changed, differences
 
-        result += differences
-        return result
+    def compare_text(self):
+
+        changed, diff = self.compare()
+        if not changed:
+            return None
+
+        text = 'News from automodel\n'
+
+        #for message in diff["messages"]:
+        #    text += diff["messages"][message]+"\n"
+
+        #for added in diff["added"]:
+        #    text += diff["added"][added]+"\n"
+
+        pprint.pprint(diff)
+
+        return text
