@@ -65,13 +65,17 @@ class Record:
 
         if self.price:
             self.price = self.price.get_text().strip()
-            if self.price[1:].isnumeric():
-                self.price = self.price[1:]
+            self.price = self.price[1:]
+            if not self.price.isnumeric():
+                if self.price == 'zpardots':
+                    self.price = 'Izpardots'
 
         if self.price_old:
             self.price_old = self.price_old.get_text().strip()
-            if self.price_old[1:].isnumeric():
-                self.price_old = self.price_old[1:]
+            self.price_old = self.price_old[1:]
+            if not self.price_old.isnumeric():
+                if self.price_old == 'zpardots':
+                    self.price_old = 'Izpardots'
 
         if self.item_link:
             self.manufacturer = self.get_manufacturer_string(self.item_link)

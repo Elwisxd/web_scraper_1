@@ -1,11 +1,8 @@
 {
   "url": "",
   "folder_path": "",
-  "creds_filename": "",
-  "token_filename": "",
   "history_filename": "",
   "test_filename": "",
-  "mail_scopes": [""],
   "mail_host": "",
   "mail_port": 0,
   "mail_username": "",
