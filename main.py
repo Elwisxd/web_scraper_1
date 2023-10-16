@@ -4,14 +4,14 @@ from params import Params
 
 def main():
     s = Scrapper()
-    s.load_from_file()
+    s.load()
     s.load_from_json(Params.get('folder_path')+Params.get('history_filename'))
     message = s.compare_text()
     print(message)
-    #s.save_to_json()
-    #if message:
-    #    e = Email(message)
-    #    e.send_email()
+    s.save_to_json()
+    if message:
+        e = Email(message)
+        e.send_email()
 
 
 if __name__ == '__main__':

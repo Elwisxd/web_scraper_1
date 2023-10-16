@@ -3,7 +3,6 @@ import json
 from bs4 import BeautifulSoup
 from record import Record
 from params import Params
-import pprint
 
 
 class Scrapper:
@@ -73,7 +72,6 @@ class Scrapper:
         differences = {
             "messages": [],
             "added": [],
-            "removed": [],
             "discounted": [],
             "restocked": [],
             "sold_out": [],
@@ -82,25 +80,21 @@ class Scrapper:
 
         if len(self.old_records) == 0:
             differences["messages"].append('List \'old_records\' empty, nothing to compare')
-            return differences
+            return changed, differences
         if len(self.new_records) == 0:
             differences["messages"].append('List \'new_records\'empty, nothing to compare')
-            return differences
+            return changed, differences
 
         new_keys = set(self.new_records.keys())
         old_keys = set(self.old_records.keys())
 
         added = new_keys.difference(old_keys)
-        removed = old_keys.difference(new_keys)
 
-        if len(added) > 0 or len(removed) > 0:
+        if len(added) > 0:
             changed = True
 
         for key in added:
             differences["added"].append(self.new_records[key].get_info_dict())
-
-        for key in removed:
-            differences["removed"].append(self.old_records[key].get_info_dict())
 
         for key in new_keys.intersection(old_keys):
             diff_types, difference = Record.compare(self.old_records[key], self.new_records[key])
@@ -115,17 +109,40 @@ class Scrapper:
     def compare_text(self):
 
         changed, diff = self.compare()
-        if not changed:
-            return None
-
         text = 'News from automodel\n'
+        for message in diff["messages"]:
+            text += message + "\n"
 
-        #for message in diff["messages"]:
-        #    text += diff["messages"][message]+"\n"
 
-        #for added in diff["added"]:
-        #    text += diff["added"][added]+"\n"
+        if not changed:
+            return text
 
-        pprint.pprint(diff)
+        text += "==== NEW        (" + str(len(diff["added"])) + ") =====\n"
+        text += "==== DISCOUNTED (" + str(len(diff["discounted"])) + ") =====\n"
+        text += "==== RESTOCKED  (" + str(len(diff["restocked"])) + ") =====\n"
+        text += "==== SOLD OUT   (" + str(len(diff["sold_out"])) + ") =====\n"
+        text += "==== MARK UP    (" + str(len(diff["markup"])) + ") =====\n"
+
+        text += "\n\n"
+
+        text += "=========== NEW (" + str(len(diff["added"])) + ") ============\n"
+        for added in diff["added"]:
+            text += Record.get_added_string_from_dict(added)
+
+        text += "==== DISCOUNTED (" + str(len(diff["discounted"])) + ") ============\n"
+        for discounted in diff["discounted"]:
+            text += Record.get_changed_string_from_dict(discounted)
+
+        text += "===== RESTOCKED (" + str(len(diff["restocked"])) + ") ============\n"
+        for restocked in diff["restocked"]:
+            text += Record.get_changed_string_from_dict(restocked)
+
+        text += "====== SOLD OUT (" + str(len(diff["sold_out"])) + ") ============\n"
+        for sold_out in diff["sold_out"]:
+            text += Record.get_changed_string_from_dict(sold_out)
+
+        text += "======== MARKUP (" + str(len(diff["markup"])) + ") ============\n"
+        for markup in diff["markup"]:
+            text += Record.get_changed_string_from_dict(markup)
 
         return text
