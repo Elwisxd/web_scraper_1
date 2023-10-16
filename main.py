@@ -6,7 +6,8 @@ def main():
     s = Scrapper()
     s.load()
     s.load_from_json(Params.get('folder_path')+Params.get('history_filename'))
-    message = s.compare()
+    message = s.compare_text()
+    print(message)
     s.save_to_json()
     if message:
         e = Email(message.encode('ascii', errors='ignore'))

@@ -67,40 +67,82 @@ class Scrapper:
         for id, record in self.old_records.items():
             record.print_info(one_line)
 
-    def compare(self):
-        result = ''
+    def compare(self): #Returns array with all differences
+        changed = False
+        differences = {
+            "messages": [],
+            "added": [],
+            "discounted": [],
+            "restocked": [],
+            "sold_out": [],
+            "markup": []
+        }
+
         if len(self.old_records) == 0:
-            result += 'List \'old_records\' empty, nothing to compare'
-            return None
+            differences["messages"].append('List \'old_records\' empty, nothing to compare')
+            return changed, differences
         if len(self.new_records) == 0:
-            result += 'List \'new_records\'empty, nothing to compare'
-            return None
+            differences["messages"].append('List \'new_records\'empty, nothing to compare')
+            return changed, differences
 
         new_keys = set(self.new_records.keys())
         old_keys = set(self.old_records.keys())
 
         added = new_keys.difference(old_keys)
 
-        result += 'NEWS from automodel\n'
-        result += f'New records - {len(new_keys)}\n'
-        result += f'Old records - {len(old_keys)}\n'
-        result += '\n\n--------------------------------------------------\n'
-        result += f'--------------- NEW ({len(added)}) ------------------------------\n\n'
+        if len(added) > 0:
+            changed = True
 
         for key in added:
-            result += self.new_records[key].get_info_string()
-
-        result += '\n\n--------------------------------------------------\n'
-        result += '------------ DIFFERENCES -------------------------\n\n'
-
-        differences = ''
+            differences["added"].append(self.new_records[key].get_info_dict())
 
         for key in new_keys.intersection(old_keys):
-            differences += Record.get_comparision(self.old_records[key], self.new_records[key])
+            diff_types, difference = Record.compare(self.old_records[key], self.new_records[key])
+            if not diff_types:
+                continue
+            changed = True
+            for diff_type in diff_types:
+                differences[diff_type].append(difference)
 
-        if len(added) == 0:
-            if len(differences) == 0:
-                return None
+        return changed, differences
 
-        result += differences
-        return result
+    def compare_text(self):
+
+        changed, diff = self.compare()
+        text = 'News from automodel\n'
+        for message in diff["messages"]:
+            text += message + "\n"
+
+
+        if not changed:
+            return text
+
+        text += "==== NEW        (" + str(len(diff["added"])) + ") =====\n"
+        text += "==== DISCOUNTED (" + str(len(diff["discounted"])) + ") =====\n"
+        text += "==== RESTOCKED  (" + str(len(diff["restocked"])) + ") =====\n"
+        text += "==== SOLD OUT   (" + str(len(diff["sold_out"])) + ") =====\n"
+        text += "==== MARK UP    (" + str(len(diff["markup"])) + ") =====\n"
+
+        text += "\n\n"
+
+        text += "=========== NEW (" + str(len(diff["added"])) + ") ============\n"
+        for added in diff["added"]:
+            text += Record.get_added_string_from_dict(added)
+
+        text += "==== DISCOUNTED (" + str(len(diff["discounted"])) + ") ============\n"
+        for discounted in diff["discounted"]:
+            text += Record.get_changed_string_from_dict(discounted)
+
+        text += "===== RESTOCKED (" + str(len(diff["restocked"])) + ") ============\n"
+        for restocked in diff["restocked"]:
+            text += Record.get_changed_string_from_dict(restocked)
+
+        text += "====== SOLD OUT (" + str(len(diff["sold_out"])) + ") ============\n"
+        for sold_out in diff["sold_out"]:
+            text += Record.get_changed_string_from_dict(sold_out)
+
+        text += "======== MARKUP (" + str(len(diff["markup"])) + ") ============\n"
+        for markup in diff["markup"]:
+            text += Record.get_changed_string_from_dict(markup)
+
+        return text

@@ -1,4 +1,4 @@
-
+from helper import Helper
 
 class Record:
 
@@ -62,20 +62,19 @@ class Record:
 
         if self.full_name:
             self.full_name = self.full_name.get_text().strip()
+            self.full_name = self.full_name.encode('ascii', 'ignore').decode('ascii')
 
         if self.price:
             self.price = self.price.get_text().strip()
-            self.price = self.price[1:]
-            if not self.price.isnumeric():
-                if self.price == 'zpardots':
-                    self.price = 'Izpardots'
+            self.price = self.price.encode('ascii', 'ignore').decode('ascii')
+            if self.price[1:].isnumeric():
+                self.price = self.price[1:]
 
         if self.price_old:
             self.price_old = self.price_old.get_text().strip()
-            self.price_old = self.price_old[1:]
-            if not self.price_old.isnumeric():
-                if self.price_old == 'zpardots':
-                    self.price_old = 'Izpardots'
+            self.price_old = self.price_old.encode('ascii', 'ignore').decode('ascii')
+            if self.price_old[1:].isnumeric():
+                self.price_old = self.price_old[1:]
 
         if self.item_link:
             self.manufacturer = self.get_manufacturer_string(self.item_link)
@@ -121,59 +120,46 @@ class Record:
     def get_diff_dict(field_name, old_value, new_value):
         return {
             'field': field_name,
-            'old_value': old_value,
-            'new_value': new_value
+            'old': old_value,
+            'new': new_value
         }
 
     @staticmethod
     def compare(old, new):
 
-        # {
-        #     'field': 'field1',
-        #     'old_value': '',
-        #     'new_ value'
-        # }
+        types = []
+        response = {'full_name': new.get_full_name(), 'manufacturer': new.get_manufacturer(), 'messages': [], 'differences': []}
 
-        response = {'full_name': new.full_name, 'messages': [], 'diff': []}
-        if not old.item_id == new.item_id:
-            response['messages'].append(f'Item IDs dont match - old record ID ({old.item_id}), new record ID ({new.item_id})')
-            return response
-
-        if not old.get_price() == new.get_price():
-            response['diff'].append(Record.get_diff_dict('price', old.price, new.price))
-
-        if not old.get_price_old() == new.get_price_old():
-            response['diff'].append(Record.get_diff_dict('price_old', old.price_old, new.price_old))
-
-        return response
-
-    @staticmethod
-    def get_comparision(old, new):
-        response = Record.compare(old, new)
-        comp_str = ''
         try:
-            if len(response['diff']) == 0:
-                return ''
-            comp_str += ' _____________________________________________\n'
-            comp_str += ' |'+response['full_name']+"\n"
-            for message in response['messages']:
-                comp_str += f' - {message}'
-            for diff in response['diff']:
-                comp_str +=' |Changed '+diff['field']+"\n"
-                comp_str +=' | old : '+diff['old_value']+"\n"
-                comp_str +=' | new : '+diff['new_value']+"\n"
-            comp_str += ' |_____________________________________________\n'
 
+            if not old.item_id == new.item_id:
+                response['messages'].append(f'Item IDs dont match - old record ID ({old.item_id}), new record ID ({new.item_id})')
+                return types, response
+
+            if old.get_price() == new.get_price():
+                return types, response
+
+            if (not Helper.isfloat(new.get_price())) and Helper.isfloat(old.get_price()):
+                response['differences'].append(Record.get_diff_dict('price', old.price, new.price))
+                types.append('sold_out')
+
+            if (not Helper.isfloat(old.get_price())) and Helper.isfloat(new.get_price()):
+                response['differences'].append(Record.get_diff_dict('price', old.price, new.price))
+                types.append('restocked')
+
+            if Helper.isfloat(old.get_price()) and Helper.isfloat(new.get_price()):
+                if float(old.get_price()) > float(new.get_price()):
+                    response['differences'].append(Record.get_diff_dict('price', old.price, new.price))
+                    types.append('discounted')
+                else:
+                    response['differences'].append(Record.get_diff_dict('price', old.price, new.price))
+                    types.append('markup')
+
+
+            return types, response
         except Exception as error:
-            comp_str += f'Error occured: {error} \n'
-        return comp_str
-
-    @staticmethod
-    def print_comparision(old, new):
-        result = Record.get_comparision(old, new)
-
-        if result:
-            print(result)
+            response["messages"].append("Error occured")
+            return response
 
     def get_info_string(self):
         response = ' _______________________________________________________\n'
@@ -184,3 +170,35 @@ class Record:
         response += f' | Brand     : {self. get_manufacturer()}\n'
         response += ' _______________________________________________________\n\n'
         return response
+
+    def get_info_dict(self):
+        response = {}
+        response["full_name"] = self.get_full_name()
+        response["manufacturer"] = self.get_manufacturer()
+        response["price"] = self.get_price()
+        response["price_old"] = self.get_price_old()
+        return response
+
+    @staticmethod
+    def get_added_string_from_dict(diff):
+        text = " ______________________\n"
+        text += " | name   : " + diff["full_name"]+"\n"
+        text += " | manuf. : " + diff["manufacturer"]+"\n"
+        text += " | price     : " + diff["price"]+"\n"
+        text += " | price old : " + diff["price_old"]+"\n"
+        text += " |_____________________\n"
+        return text
+
+    @staticmethod
+    def get_changed_string_from_dict(diff):
+        text = " ______________________\n"
+        text += " | name   : " + diff["full_name"]+"\n"
+        text += " | manuf. : " + diff["manufacturer"]+"\n"
+        for message in diff["messages"]:
+            text += " |m : " + message + "\n"
+        for difference in diff["differences"]:
+            text += " | field : " + difference["field"] + "\n"
+            text += " | old   : " + difference["old"] + "\n"
+            text += " | new   : " + difference["new"] + "\n"
+        text += " |_____________________\n"
+        return text
