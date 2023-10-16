@@ -10,7 +10,7 @@ def main():
     print(message)
     s.save_to_json()
     if message:
-        e = Email(message)
+        e = Email(message.encode('ascii', errors='ignore'))
         e.send_email()
 
 
