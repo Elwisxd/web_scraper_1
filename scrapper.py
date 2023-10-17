@@ -115,7 +115,7 @@ class Scrapper:
 
 
         if not changed:
-            return text
+            return changed, text
 
         text += "==== NEW        (" + str(len(diff["added"])) + ") =====\n"
         text += "==== DISCOUNTED (" + str(len(diff["discounted"])) + ") =====\n"
@@ -145,4 +145,4 @@ class Scrapper:
         for markup in diff["markup"]:
             text += Record.get_changed_string_from_dict(markup)
 
-        return text
+        return changed, text
