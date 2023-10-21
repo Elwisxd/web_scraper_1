@@ -56,7 +56,7 @@ class Scrapper:
             except Exception as error:
                 print(f'Error with record. Item id = {record.item_id} , {record.full_name}')
                 print('Exception ', error)
-        with open(Params.get('history_filename'), "w") as final:
+        with open(Params.get('folder_path')+Params.get('history_filename'), "w") as final:
             json.dump(jsons, final, indent=2)
 
     def print(self, one_line=True):
