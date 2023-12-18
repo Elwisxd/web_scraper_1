@@ -27,7 +27,7 @@ class Scrapper:
 
     def load_from_file(self):
 
-        with open(Params.get('test_filename'), encoding="utf8") as file:
+        with open(os.path.join(Params.get('folder_path'), Params.get('test_filename')), encoding="utf8") as file:
             soup = BeautifulSoup(file, "html.parser")
             results = soup.find_all("div", class_="cat-thumb")
 
@@ -58,7 +58,7 @@ class Scrapper:
             except Exception as error:
                 print(f'Error with record. Item id = {record.item_id} , {record.full_name}')
                 print('Exception ', error)
-        with open(Params.get('history_filename'), "w") as final:
+        with open(os.path.join(Params.get('folder_path'),Params.get('history_filename')), "w") as final:
             json.dump(jsons, final, indent=2)
 
     def print(self, one_line=True):
@@ -147,7 +147,6 @@ class Scrapper:
     def save_history(self, diff_json):
         history_folder_path = os.path.join(Params.get('folder_path'), Params.get('history_folder_name'))
 
-        print(history_folder_path)
         if not os.path.isdir(history_folder_path):
             try:
                 os.mkdir(history_folder_path)

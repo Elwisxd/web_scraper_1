@@ -7,7 +7,7 @@ def main():
     Params.set_base_folder()
     s = Scrapper()
     s.load()
-    s.load_from_json(os.path.join(Params.get('folder_path'),Params.get('history_filename')))
+    s.load_from_json(os.path.join(Params.get('folder_path'), Params.get('history_filename')))
     changed, diff_json = s.compare()
     s.save_to_json()
     if changed:
