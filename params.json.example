@@ -8,5 +8,6 @@
   "mail_username": "",
   "mail_password": "",
   "mail_subject": "",
-  "mail_recipients": [""]
+  "mail_recipients": [""],
+  "history_folder_name": ""
 }
