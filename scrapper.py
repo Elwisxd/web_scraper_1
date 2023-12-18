@@ -3,6 +3,8 @@ import json
 from bs4 import BeautifulSoup
 from record import Record
 from params import Params
+import os
+import datetime
 
 
 class Scrapper:
@@ -106,16 +108,11 @@ class Scrapper:
 
         return changed, differences
 
-    def compare_text(self):
+    def compare_text(self, diff):
 
-        changed, diff = self.compare()
         text = 'News from automodel\n'
         for message in diff["messages"]:
             text += message + "\n"
-
-
-        if not changed:
-            return changed, text
 
         text += "==== NEW        (" + str(len(diff["added"])) + ") =====\n"
         text += "==== DISCOUNTED (" + str(len(diff["discounted"])) + ") =====\n"
@@ -145,4 +142,26 @@ class Scrapper:
         for markup in diff["markup"]:
             text += Record.get_changed_string_from_dict(markup)
 
-        return changed, text
+        return text
+
+    def save_history(self, diff_json):
+        history_folder_path = os.path.join(Params.get('folder_path'), Params.get('history_folder_name'))
+
+        print(history_folder_path)
+        if not os.path.isdir(history_folder_path):
+            try:
+                os.mkdir(history_folder_path)
+            except Exception as e:
+                print('Error occurred : '+str(e))
+
+        if not os.path.isdir(history_folder_path) :
+            print("Path doesnt exist")
+            return False
+
+        now = datetime.datetime.now()
+        filename = now.strftime("%Y%m%d_%H%M%S") + ".txt"
+
+        with open(os.path.join(history_folder_path, filename), "x") as file:
+            json.dump(diff_json, file, indent=2)
+
+        return True
