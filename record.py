@@ -2,14 +2,14 @@ from helper import Helper
 
 class Record:
 
-    # raw html
-    # item id
-    # full name
-    # price
-    # old_price
-    # manufacturer
-
+    """Class record represents auto model"""
     def __init__(self, data, data_format):
+        """
+        Constructor from class 'record'
+        Parameters:
+            data (str or dictionary) - data containing information for object creation
+            data_format (str) - determines data format ("json" or "html")
+        """
         self.item_id = ''
         self.full_name = ''
         self.price = ''
@@ -23,36 +23,65 @@ class Record:
             self.load_from_json(data)
 
     def get_item_id(self):
+        """
+        Returns:
+             (str) - item id or empty string
+        """
         if self.item_id:
             return self.item_id
         return ''
 
     def get_full_name(self):
+        """
+        Returns:
+            (str) - full name or empty string
+        """
         if self.full_name:
             return self.full_name
         return ''
 
     def get_price(self):
+        """
+        Returns:
+             (str) - price or empty string
+        """
         if self.price:
             return self.price
         return ''
 
     def get_price_old(self):
+        """
+        Returns:
+             (str) - old price or empty string
+        """
         if self.price_old:
             return self.price_old
         return ''
 
     def get_item_link(self):
+        """
+        Returns:
+             (str) - item link or empty string
+        """
         if self.item_link:
             return self.item_link
         return ''
 
     def get_manufacturer(self):
+        """
+        Returns:
+             (str) - manufacturer or empty string
+        """
         if self.manufacturer:
             return self.manufacturer
         return ''
 
     def load_from_html(self, html):
+        """
+        Loads object information from html.
+        Parameters:
+            html (string) - html formatted text
+        """
         self.item_id = html.get("data-cat-item-id")
         self.full_name = html.find("div", class_="cat-thumb-title")
         self.price = html.find("span", class_="moze-price")
@@ -80,6 +109,11 @@ class Record:
             self.manufacturer = self.get_manufacturer_string(self.item_link)
 
     def load_from_json(self, json):
+        """
+        Loads object information from json.
+        Parameters:
+            json (dictionary) - dictionary containing object information
+        """
         self.item_id = json['item_id']
         self.full_name = json['full_name']
         self.price = json['price']
@@ -87,6 +121,9 @@ class Record:
         self.manufacturer = json['manufacturer']
 
     def get_json(self):
+        """
+        Returns:
+            (dictionary) - object information as dictionary"""
         return {
             'item_id': self.get_item_id(),
             'full_name': self.get_full_name(),
@@ -96,6 +133,11 @@ class Record:
         }
 
     def print_info(self, one_line=True):
+        """
+        Prints all object information
+        Parameters:
+            one_line (bool) - if information needs to be displayed in one line
+        """
         if one_line:
             print(self.get_item_id() + " | " + self.get_manufacturer() + " | " + self.get_full_name())
         else:
@@ -108,6 +150,13 @@ class Record:
 
     @staticmethod
     def get_manufacturer_string(url):
+        """
+        Gets manufacturer string from item url.
+        Parameters:
+            url (str) - item url
+        Returns:
+            (str) - manufacturer string
+        """
         start = url.find('/item/') + 6
         manufacturer = url[start:url.find('/', start)]
         if 'untitled' in manufacturer:
@@ -118,6 +167,10 @@ class Record:
 
     @staticmethod
     def get_diff_dict(field_name, old_value, new_value):
+        """
+        Returns:
+             (dictionary) - dictionary of differences
+        """
         return {
             'field': field_name,
             'old': old_value,
@@ -126,7 +179,15 @@ class Record:
 
     @staticmethod
     def compare(old, new):
-
+        """
+        Compares 'record' objects.
+        Parameters:
+            old (record) - old record
+            new (record) - new record
+        Return:
+            types (list) - difference types
+            response (dictionary) - object common information and differences
+        """
         types = []
         response = {'full_name': new.get_full_name(), 'manufacturer': new.get_manufacturer(), 'messages': [], 'differences': []}
 
@@ -162,6 +223,11 @@ class Record:
             return response
 
     def get_info_string(self):
+        """
+        Generates formatted string about object
+        Returns:
+            (str) - formatted information as string
+        """
         response = ' _______________________________________________________\n'
         #response += f'Item ID   : {self.get_item_id()}\n'
         response += f' | Name      : {self.get_full_name()}\n'
@@ -172,6 +238,11 @@ class Record:
         return response
 
     def get_info_dict(self):
+        """
+        Generates dictionary with object information
+        Returns:
+            (dictionary) - object dictionary
+        """
         response = {}
         response["full_name"] = self.get_full_name()
         response["manufacturer"] = self.get_manufacturer()
@@ -181,6 +252,11 @@ class Record:
 
     @staticmethod
     def get_added_string_from_dict(diff):
+        """
+        Generates string about added record
+        Returns:
+            (str) - formatted text about added record
+        """
         text = " ______________________\n"
         text += " | name   : " + diff["full_name"]+"\n"
         text += " | manuf. : " + diff["manufacturer"]+"\n"
@@ -191,6 +267,11 @@ class Record:
 
     @staticmethod
     def get_changed_string_from_dict(diff):
+        """
+        Generates string about changed record
+        Returns:
+            (str) - formatted text about changed record
+        """
         text = " ______________________\n"
         text += " | name   : " + diff["full_name"]+"\n"
         text += " | manuf. : " + diff["manufacturer"]+"\n"

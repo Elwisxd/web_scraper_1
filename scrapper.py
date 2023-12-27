@@ -9,11 +9,16 @@ import datetime
 
 class Scrapper:
 
+    """Class scrapper is class for old and new information comparing"""
+
     url = Params.get('url')
     new_records = {}
     old_records = {}
 
     def load(self):
+        """
+        Loads information from url in new_records list
+        """
         page = requests.get(self.url)
         soup = BeautifulSoup(page.content, "html.parser")
         results = soup.find_all("div", class_="cat-thumb")
@@ -26,7 +31,9 @@ class Scrapper:
                 print(f'Error with record. Item id = {r.item_id} , {r.full_name} | error : {error}')
 
     def load_from_file(self):
-
+        """
+        Loads information from html file in new_records list
+        """
         with open(os.path.join(Params.get('folder_path'), Params.get('test_filename')), encoding="utf8") as file:
             soup = BeautifulSoup(file, "html.parser")
             results = soup.find_all("div", class_="cat-thumb")
@@ -40,6 +47,11 @@ class Scrapper:
                     print('Exception ', error)
 
     def load_from_json(self, file_name):
+        """
+        Loads information from json file in old_records list
+        Parameters:
+            file_name (str) - name of file containing json formatted information
+        """
         f = open(file_name)
         data = json.load(f)
         for d in data.values():
@@ -51,6 +63,9 @@ class Scrapper:
                 print('Exception ', error)
 
     def save_to_json(self):
+        """
+        Saves information from new_records list to json file
+        """
         jsons = {}
         for key, record in self.new_records.items():
             try:
@@ -62,14 +77,29 @@ class Scrapper:
             json.dump(jsons, final, indent=2)
 
     def print(self, one_line=True):
+        """
+        Prints all records from new_records list
+        Parameters:
+            one_line (bool) - if record needs to be displayed in one line
+        """
         for id, record in self.new_records.items():
             record.print_info(one_line)
 
     def print_old(self, one_line=True):
+        """
+        Prints all records from old_records list
+            one_line (bool) - if record needs to be displayed in one line
+        """
         for id, record in self.old_records.items():
             record.print_info(one_line)
 
-    def compare(self): #Returns array with all differences
+    def compare(self):
+        """
+        Compares all differences between old_records list and new_records list.
+        Returns:
+            changed (bool) - determines if something has changed
+            differences (dictionary) - all differences between new and old records
+        """
         changed = False
         differences = {
             "messages": [],
@@ -109,7 +139,13 @@ class Scrapper:
         return changed, differences
 
     def compare_text(self, diff):
-
+        """
+        Method generates string from difference dictionary.
+        Parameters:
+            diff (dictionary) - difference dictionary produced by 'compare' method.
+        Returns:
+            (str) - all differences formatted as string
+        """
         text = 'News from automodel\n'
         for message in diff["messages"]:
             text += message + "\n"
@@ -145,6 +181,13 @@ class Scrapper:
         return text
 
     def save_history(self, diff_json):
+        """
+        Saves history to json file.
+        Parameters:
+            diff_json (dictionary) - difference dictionary produced by 'compare' method.
+        Returns:
+            (bool) - determines if file saving was successful
+        """
         history_folder_path = os.path.join(Params.get('folder_path'), Params.get('history_folder_name'))
 
         if not os.path.isdir(history_folder_path):
