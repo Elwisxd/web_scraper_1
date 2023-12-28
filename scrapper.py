@@ -52,15 +52,20 @@ class Scrapper:
         Parameters:
             file_name (str) - name of file containing json formatted information
         """
-        f = open(file_name)
-        data = json.load(f)
-        for d in data.values():
-            record = Record(d, "json")
-            try:
-                self.old_records[record.item_id] = record
-            except Exception as error:
-                print(f'Error with record. Item id = {record.item_id} , {record.full_name}')
-                print('Exception ', error)
+        try:
+            f = open(file_name)
+            data = json.load(f)
+            for d in data.values():
+                record = Record(d, "json")
+                try:
+                    self.old_records[record.item_id] = record
+                except Exception as error:
+                    print(f'Error with record. Item id = {record.item_id} , {record.full_name}')
+                    print('Exception ', error)
+        except:
+            f = open(file_name, "w")
+            f.write("{}")
+            f.close()
 
     def save_to_json(self):
         """
