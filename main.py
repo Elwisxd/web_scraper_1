@@ -4,7 +4,6 @@ from params import Params
 import os
 
 def main():
-    Params.set_base_folder()
     s = Scrapper()
     s.load()
     s.load_from_json(os.path.join(Params.get('folder_path'), Params.get('history_filename')))
